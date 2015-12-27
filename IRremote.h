@@ -76,6 +76,9 @@
 #define DECODE_PRONTO        0 // This function doe not logically make sense
 #define SEND_PRONTO          1
 
+#define DECODE_MAGIQUEST     1
+#define SEND_MAGIQUEST       0 // NOT WRITTEN
+
 //------------------------------------------------------------------------------
 // When sending a Pronto code we request to send either the "once" code
 //                                                   or the "repeat" code
@@ -115,6 +118,7 @@ typedef
 		SHARP,
 		DENON,
 		PRONTO,
+		MAGIQUEST,
 	}
 decode_type_t;
 
@@ -148,10 +152,17 @@ class decode_results
 {
 	public:
 		decode_type_t          decode_type;  // UNKNOWN, NEC, SONY, RC5, ...
-		unsigned int           address;      // Used by Panasonic & Sharp [16-bits]
-		unsigned long          value;        // Decoded value [max 32-bits]
+
 		int                    bits;         // Number of bits in decoded value
-		volatile unsigned int  *rawbuf;      // Raw intervals in 50uS ticks
+		unsigned long          value;        // Decoded value [max 32-bits]
+#if DECODE_PANASONIC
+		unsigned int           address;      // Used by Panasonic & Sharp [16-bits]
+#endif
+#if DECODE_MAGIQUEST
+		unsigned long          magnitude;    // Remainder data used by MagiQuest
+#endif
+
+		volatile unsigned int *rawbuf;       // Raw intervals in 50uS ticks
 		int                    rawlen;       // Number of records in rawbuf
 		int                    overflow;     // true iff IR raw code too long
 };
@@ -243,6 +254,10 @@ class IRrecv
 #		if DECODE_DENON
 			bool  decodeDenon (decode_results *results) ;
 #		endif
+		//......................................................................
+#		if DECODE_MAGIQUEST
+			bool  decodeMagiquest  (decode_results *results) ;
+#		endif
 } ;
 
 //------------------------------------------------------------------------------
@@ -326,6 +341,10 @@ class IRsend
 		//......................................................................
 #		if SEND_PRONTO
 			void  sendPronto     (char* code,  bool repeat,  bool fallback) ;
+#		endif
+		//......................................................................
+#		if SEND_MAGIQUEST
+			void  sendMagiquest  ( ) ; // NOT WRITTEN
 #		endif
 } ;
 
